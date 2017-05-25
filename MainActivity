@@ -1,0 +1,161 @@
+package com.myapp.basic_connection;
+
+import android.database.Cursor;
+import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.EditText;
+import java.sql.*;
+
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class MainActivity extends AppCompatActivity {
+   DatabaseHelper myDb;
+
+    EditText fname;
+    EditText lname;
+    EditText grades;
+    EditText ID_;
+    Button submitBTN;
+    Button displayBTN;
+    Button updateBTN;
+    Button deleteBTN;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        myDb = new DatabaseHelper(this);
+
+        fname = (EditText) findViewById(R.id.first_nametxt);
+        lname = (EditText) findViewById(R.id.last_nametxt);
+        grades = (EditText) findViewById(R.id.gradetxt);
+        ID_ = (EditText) findViewById(R.id.IDTxt);
+        submitBTN = (Button) findViewById(R.id.submit_button);
+        displayBTN = (Button) findViewById(R.id.display_button);
+        updateBTN = (Button) findViewById(R.id.update_button);
+        deleteBTN = (Button) findViewById(R.id.Delete_button);
+        addData();
+        viewAll();
+        updateData();
+        deleteData();
+    }
+    public void deleteData(){
+        deleteBTN.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                Integer deletedRows = myDb.deleteData(ID_.getText().toString());
+                if (deletedRows > 0){
+                    Toast.makeText(MainActivity.this,"Data deleted", Toast.LENGTH_LONG).show();
+                }else{
+                    Toast.makeText(MainActivity.this,"Data not deleted", Toast.LENGTH_LONG).show();
+
+                }
+            }
+        });
+    }
+    public void addData(){
+        submitBTN.setOnClickListener(
+                new View.OnClickListener(){
+
+                    @Override
+                    public void onClick(View v) {
+                        boolean isInserted = myDb.insertData(fname.getText().toString(),lname.getText().toString(),grades.getText().toString());
+                        if (isInserted = true){
+                            Toast.makeText(MainActivity.this,"Data Inserted", Toast.LENGTH_LONG).show();
+                        }else{
+                            Toast.makeText(MainActivity.this,"Data not Inserted", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                } // new view
+        );
+    }
+
+    public void viewAll(){
+        displayBTN.setOnClickListener(
+                new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        Cursor result = myDb.getAllData();
+                        if(result.getCount()==0){
+                            showMessage("Error", "No Data found");
+                            return;
+                        }else{
+
+                            StringBuffer buffer = new StringBuffer();
+
+                            while(result.moveToNext()){
+                                buffer.append("ID :" + result.getString(0) + "\n");
+                                buffer.append("First Name :" + result.getString(1) + "\n");
+                                buffer.append("Last Name :" + result.getString(2) + "\n");
+                                buffer.append("Grade :" + result.getString(3) + "\n\n");
+                            }//while
+
+                            showMessage("Data", buffer.toString());
+                        }
+                    }// onClick
+                }// new view
+
+        );
+    }
+    public void updateData(){
+        updateBTN.setOnClickListener(
+                new View.OnClickListener(){
+
+
+                    @Override
+                    public void onClick(View v) {
+                        boolean isUpdated = myDb.updateData(ID_.getText().toString(),fname.getText().toString(), lname.getText().toString(),grades.getText().toString());
+                        if (isUpdated){
+                            Toast.makeText(MainActivity.this,"Data Updated", Toast.LENGTH_LONG).show();
+                        }else{
+                            Toast.makeText(MainActivity.this,"Data not Updated", Toast.LENGTH_LONG).show();
+                        }
+
+                    }
+                }
+        );
+    }
+
+    public void showMessage(String title, String message){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(true);
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.show();
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+}
